@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>급식 정보 조회</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        nav {
+            background: lightblue;
+            padding: 1rem;
+            border-radius: 8px;
+        }
+        nav ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: space-around;
+        }
+        nav ul li {
+            display: inline;
+        }
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            display: block;
+            font-weight: bold;
+            font-size: 25px;
+        }
+        nav ul li a:hover {
+            background-color: gray;
+            border-radius: 5px;
+        }
+        body {
+            font-family: 'Arial', sans-serif;
+            padding: 10px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #3f51b5;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+        input[type="date"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #3f51b5;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-size: 1rem;
+        }
+        button:hover {
+            background-color: #303f9f;
+        }
+        .meal-container {
+            margin-top: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .meal-item {
+            border-bottom: 1px solid #eee;
+            padding: 10px;
+        }
+        .meal-item:last-child {
+            border-bottom: none;
+        }
+        .meal-label {
+            background-color: #3f51b5;
+            color: #fff;
+            padding: 8px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+        .meal-content {
+            padding: 10px;
+            text-align: center;
+            font-size: 0.85rem;
+            color: #333;
+        }
+        .meal-content ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+        .meal-content ul li {
+            padding: 4px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .meal-content ul li:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <ul>
+            <li><a href="classtime.html">시간표</a></li>
+            <li><a href="mealtime.html">급식표</a></li>
+        </ul>
+    </nav>
+    <br>
+    <div class="container">
+        <h1>급식 정보 조회</h1>
+        <label for="date-input">날짜 선택:</label>
+        <input type="date" id="date-input">
+        <button onclick="fetchAndDisplayMeal()">조회</button>
+        
+        <div class="meal-container" id="meal-data">
+            <div id="no-data">날짜를 선택하고 조회하세요.</div>
+        </div>
+    </div>
+
+    <script>
+        const apiKey = 'f58cfc7ae926420a90b6e3a0e2a1ac8e'; // NEIS 인증키를 여기에 입력하세요
+        const ATPT_OFCDC_SC_CODE = 'J10';
+        const SD_SCHUL_CODE = '7530791';
+
+        // 날짜 형식을 "YYYY년 MM월 DD일"로 변환
+        function formatDate(dateString) {
+            const year = dateString.substring(0, 4);
+            const month = dateString.substring(4, 6);
+            const day = dateString.substring(6, 8);
+            return `${year}년 ${month}월 ${day}일`;
+        }
+
+        // 급식 정보 가져오기
+        async function fetchMealData(date) {
+            const apiUrl = `https://open.neis.go.kr/hub/mealServiceDietInfo?KEY=${apiKey}&Type=json&ATPT_OFCDC_SC_CODE=${ATPT_OFCDC_SC_CODE}&SD_SCHUL_CODE=${SD_SCHUL_CODE}&MLSV_YMD=${date}`;
+            const response = await fetch(apiUrl);
+            const data = await response.json();
+            return data;
+        }
+
+        // 선택된 날짜의 급식 정보 조회 및 표시
+async function fetchAndDisplayMeal() {
+    const dateInput = document.getElementById('date-input');
+    const date = dateInput.value.replace(/-/g, ''); // yyyy-mm-dd 형식을 yyyymmdd로 변환
+
+    const container = document.getElementById('meal-data');
+    container.innerHTML = '';
+
+    if (!date) {
+        container.innerHTML = '<div id="no-data">날짜를 선택해주세요.</div>';
+        return;
+    }
+
+    const data = await fetchMealData(date);
+
+    // 급식 정보가 있을 경우에만 처리
+    if (data.mealServiceDietInfo) {
+        const meals = data.mealServiceDietInfo[1].row;
+
+        // 급식 정보가 여러 개 있을 수 있으므로 배열로 처리
+        meals.forEach(meal => {
+            const formattedDate = formatDate(meal.MLSV_YMD);
+            const mealType = meal.MMEAL_SC_NM; // 급식명 (조식, 중식, 석식)
+            const dishes = meal.DDISH_NM.replace(/<br\/>/g, ', ').split(', ');
+
+            const mealHtml = `
+                <div class="meal-item">
+                    <div class="meal-label">날짜</div>
+                    <div class="meal-content">${formattedDate}</div>
+                    <div class="meal-label">급식명</div>
+                    <div class="meal-content">${mealType}</div>
+                    <div class="meal-label">메뉴</div>
+                    <div class="meal-content">
+                        <ul>
+                            ${dishes.map(dish => `<li>${dish}</li>`).join('')}
+                        </ul>
+                    </div>
+                </div>`;
+            container.innerHTML += mealHtml;
+        });
+    } else {
+        // 급식 정보가 없을 경우
+        container.innerHTML = '<div id="no-data">선택한 날짜에 급식 정보가 없습니다.</div>';
+    }
+}
+    </script>
+</body>
+</html>

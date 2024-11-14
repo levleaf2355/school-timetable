@@ -1,0 +1,42 @@
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color:aliceblue ;
+    margin: 0;
+}
+.container {
+    text-align: center;
+}
+.select-box {
+    background-color: #333;
+    color: #fff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 18px;
+    margin-bottom: 20px;
+    font-weight: bold;
+}
+.confirm-button {
+    display: inline-block;
+    background-color: lawngreen;
+    color: #333;
+    border: none;
+    text-decoration: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+    font-size: 18px;
+    font-weight: bold;
+}
+.confirm-button:visited {
+    color: #fff;
+    background-color: lawngreen;
+}
+.confirm-button:hover {
+    background-color: aliceblue;
+}
